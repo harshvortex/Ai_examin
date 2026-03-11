@@ -1,5 +1,6 @@
 import os
 import random
+import shutil
 from datetime import datetime, timezone
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
@@ -16,8 +17,24 @@ except ImportError:
 app = Flask(__name__)
 # Stabilize Secret Key to prevent session loss on restarts
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_123456789')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///examinor.db')
-# Handle DATABASE_URL for Postgres if using Render/Railway (they often use 'postgres://')
+
+# Vercel Write-Fix: Move SQLite to /tmp to allow registration & results
+db_path = os.path.join(app.instance_path, 'examinor.db')
+if os.environ.get('VERCEL'):
+    # In Vercel, we must use /tmp for any write operations
+    tmp_db = '/tmp/examinor.db'
+    if not os.path.exists(tmp_db):
+        import shutil
+        if os.path.exists(db_path):
+            shutil.copy2(db_path, tmp_db)
+        else:
+            # If instance path doesn't exist, we'll create it later in init_db
+            pass
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{tmp_db}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{db_path}')
+
+# Handle DATABASE_URL for Postgres if provided
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -59,6 +76,16 @@ def init_db():
                 Question(text="What is the default port for HTTP?", option_a="443", option_b="22", option_c="80", option_d="8080", correct_option="C", category="Networking")
             ]
             db.session.bulk_save_objects(sample_questions)
+            db.session.commit()
+            
+            # Seed a default user for testing
+            admin_user = User(
+                username='UserDemo', 
+                email='admin@examinor.com', 
+                password_hash=bcrypt.generate_password_hash('admin123').decode('utf-8'),
+                student_id='STU-0001'
+            )
+            db.session.add(admin_user)
             db.session.commit()
 
 @app.route('/')
@@ -236,6 +263,6 @@ def generate_from_source():
     flash("AI has generated 5 specialized questions from your source!", "success")
     return redirect(url_for('exam'))
 
+init_db()
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True, port=5000)
