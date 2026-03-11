@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 0;" class="animate-in">
+    <h1 style="font-size: 4rem; margin-bottom: 1.5rem; line-height: 1.1;">Revolutionize Your <br> <span
+            style="color: var(--primary);">Academic Performance</span></h1>
+    <p style="color: var(--text-muted); font-size: 1.25rem; max-width: 600px; margin: 0 auto 2.5rem;">
+        An AI-powered examination platform designed to challenge your skills with real-time feedback and detailed
+        performance analytics.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Go
+            to Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Get
+            Started Free</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Live
+            Demo</a>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 4rem;">
+    <div class="glass-card" style="padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">⏱️</div>
+        <h3>10 Min Duration</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Controlled examination environment to simulate
+            real-life pressure.</p>
+    </div>
+    <div class="glass-card" style="padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">🤖</div>
+        <h3>AI Assessment</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Instant scoring and performance profile breakdown based
+            on your results.</p>
+    </div>
+    <div class="glass-card" style="padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">🎓</div>
+        <h3>Academic Profile</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Keep track of your growth and examination records in
+            one place.</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Examinor | Modern Learning</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;810&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}" class="logo">AI EXAMINOR</a>
+        <div class="nav-links">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; border-radius: 0.5rem; background: rgba(0,0,0,0.3); margin-bottom: 1rem; border: 1px solid var(--primary); color: white;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="margin-top: auto; padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
+        &copy; 2026 AI Examinor. Designed for Excellence.
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

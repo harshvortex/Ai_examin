@@ -1,0 +1,7 @@
+flask
+flask-sqlalchemy
+flask-login
+flask-bcrypt
+gunicorn
+PyPDF2
+requests

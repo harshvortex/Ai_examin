@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 4rem auto; text-align: center;" class="animate-in">
+    <div class="glass-card">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+        <h1 style="margin-bottom: 1rem;">Exam Completed!</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Your performance has been analyzed by AI Examinor.</p>
+
+        <div
+            style="background: rgba(99, 102, 241, 0.1); border-radius: 2rem; padding: 3rem; margin-bottom: 2.5rem; border: 1px solid rgba(99, 102, 241, 0.2);">
+            <p
+                style="font-size: 1.1rem; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+                Final Score</p>
+            <div style="font-size: 5rem; font-weight: 800; margin: 0.5rem 0;">{{ score }}<span
+                    style="font-size: 2rem; color: var(--text-muted); font-weight: 400;">/{{ total }}</span></div>
+
+            {% set percentage = (score / total * 100)|int %}
+            <div style="font-size: 1.25rem; font-weight: 600;">
+                {% if percentage >= 80 %}
+                🌟 Exceptional Performance!
+                {% elif percentage >= 60 %}
+                ✅ Good Job!
+                {% else %}
+                📚 Keep Practicing!
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="padding: 1rem 2rem;">Back to Profile</a>
+            <a href="{{ url_for('start_exam') }}" class="btn btn-outline" style="padding: 1rem 2rem;">Retake Exam</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
