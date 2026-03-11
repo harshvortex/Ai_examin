@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -11,7 +11,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     bio = db.Column(db.String(255), default="Ready to excel!")
     student_id = db.Column(db.String(20), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     results = db.relationship('ExamResult', backref='student', lazy=True)
 
@@ -31,4 +31,4 @@ class ExamResult(db.Model):
     score = db.Column(db.Integer, nullable=False)
     total_questions = db.Column(db.Integer, default=10)
     time_taken = db.Column(db.Integer) # In seconds
-    date_completed = db.Column(db.DateTime, default=datetime.utcnow)
+    date_completed = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

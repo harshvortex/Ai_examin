@@ -1,6 +1,6 @@
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -115,7 +115,7 @@ def start_exam():
     session['exam_questions'] = [q.id for q in selected_questions]
     session['current_q_index'] = 0
     session['answers'] = {}
-    session['exam_start_time'] = datetime.utcnow().timestamp()
+    session['exam_start_time'] = datetime.now(timezone.utc).timestamp()
     return redirect(url_for('exam'))
 
 @app.route('/exam')
@@ -161,7 +161,7 @@ def submit_exam():
         if answers.get(str(q_id)) == question.correct_option:
             score += 1
             
-    time_taken = int(datetime.utcnow().timestamp() - session.get('exam_start_time', 0))
+    time_taken = int(datetime.now(timezone.utc).timestamp() - session.get('exam_start_time', 0))
     
     result = ExamResult(user_id=current_user.id, score=score, total_questions=len(q_ids), time_taken=time_taken)
     db.session.add(result)
@@ -222,7 +222,7 @@ def generate_from_source():
     session['exam_questions'] = [q.id for q in new_questions]
     session['current_q_index'] = 0
     session['answers'] = {}
-    session['exam_start_time'] = datetime.utcnow().timestamp()
+    session['exam_start_time'] = datetime.now(timezone.utc).timestamp()
     
     flash("AI has generated 5 specialized questions from your source!", "success")
     return redirect(url_for('exam'))
