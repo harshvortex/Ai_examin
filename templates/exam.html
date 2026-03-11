@@ -1,66 +1,46 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div style="max-width: 800px; margin: 2rem auto;" class="animate-in">
+<div style="max-width: 800px; margin: 1.5rem auto;" class="animate-in">
     <div class="exam-header">
         <div>
             <h2 style="color: var(--primary);">Question {{ index }} of {{ total }}</h2>
-            <p style="color: var(--text-muted); margin-top: 0.25rem;">Select the most appropriate answer.</p>
+            <span class="badge badge-{{ difficulty }}">{{ difficulty }}</span>
         </div>
         <div class="timer" id="exam-timer">10:00</div>
     </div>
-
-    <!-- Progress Bar -->
     <div
-        style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; margin-bottom: 3rem; overflow: hidden;">
+        style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; margin-bottom: 2rem; overflow: hidden;">
         <div
-            style="width: {{ (index / total * 100)|int }}%; height: 100%; background: var(--primary); transition: width 0.5s ease;">
+            style="width: {{ (index / total * 100)|int }}%; height: 100%; background: var(--primary); transition: width 0.5s;">
         </div>
     </div>
-
     <div class="glass-card">
-        <h3 style="font-size: 1.5rem; line-height: 1.4; margin-bottom: 2rem;">{{ question.text }}</h3>
-
+        <h3 style="font-size: 1.25rem; line-height: 1.4; margin-bottom: 1.5rem;">{{ question.text }}</h3>
         <form id="exam-form" action="{{ url_for('next_question') }}" method="POST">
             <div class="options-grid">
-                <label class="option-btn">
-                    <input type="radio" name="answer" value="A" required>
-                    <span>{{ question.option_a }}</span>
-                </label>
-                <label class="option-btn">
-                    <input type="radio" name="answer" value="B">
-                    <span>{{ question.option_b }}</span>
-                </label>
-                <label class="option-btn">
-                    <input type="radio" name="answer" value="C">
-                    <span>{{ question.option_c }}</span>
-                </label>
-                <label class="option-btn">
-                    <input type="radio" name="answer" value="D">
-                    <span>{{ question.option_d }}</span>
-                </label>
+                <label class="option-btn"><input type="radio" name="answer" value="A" required><span>{{
+                        question.option_a }}</span></label>
+                <label class="option-btn"><input type="radio" name="answer" value="B"><span>{{ question.option_b
+                        }}</span></label>
+                <label class="option-btn"><input type="radio" name="answer" value="C"><span>{{ question.option_c
+                        }}</span></label>
+                <label class="option-btn"><input type="radio" name="answer" value="D"><span>{{ question.option_d
+                        }}</span></label>
             </div>
-
-            <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
-                <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem;">
-                    {% if index == total %} Complete Exam {% else %} Next Question {% endif %}
-                </button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">{% if index == total %}Complete Exam{% else %}Next
+                    Question{% endif %}</button>
             </div>
         </form>
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
-    // Initialize timer for 10 minutes (600 seconds)
-    // We check if there's an existing timer in localStorage to handle refreshes
     let timeLeft = parseInt(localStorage.getItem('exam_time_left')) || 600;
-
     startTimer(timeLeft, document.getElementById('exam-timer'), () => {
-        // Callback when time is up
-        alert('Time is up! Your exam will be submitted automatically.');
+        alert('Time is up! Submitting automatically.');
         window.location.href = "{{ url_for('submit_exam') }}";
     });
 </script>

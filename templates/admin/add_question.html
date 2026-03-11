@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 700px; margin: 2rem auto;" class="animate-in">
+    <h1 style="font-size: 2rem; margin-bottom: 2rem;">➕ Add Question</h1>
+    <div class="glass-card">
+        <form method="POST">
+            <div class="form-group">
+                <label>Question Text</label>
+                <textarea name="text" required placeholder="Type the question..."></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group"><label>Option A</label><input type="text" name="option_a" required></div>
+                <div class="form-group"><label>Option B</label><input type="text" name="option_b" required></div>
+                <div class="form-group"><label>Option C</label><input type="text" name="option_c" required></div>
+                <div class="form-group"><label>Option D</label><input type="text" name="option_d" required></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Correct Answer</label>
+                    <select name="correct_option" required>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select name="difficulty" required>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" value="General" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Question</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

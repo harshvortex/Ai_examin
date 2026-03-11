@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-in">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="font-size: 2rem;">📝 Questions</h1>
+        <a href="{{ url_for('admin_add_question') }}" class="btn btn-primary btn-sm">➕ Add New</a>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin_questions', difficulty='all') }}"
+            class="btn {% if current_diff == 'all' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">All</a>
+        <a href="{{ url_for('admin_questions', difficulty='easy') }}"
+            class="btn {% if current_diff == 'easy' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">🟢 Easy</a>
+        <a href="{{ url_for('admin_questions', difficulty='medium') }}"
+            class="btn {% if current_diff == 'medium' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">🟡
+            Medium</a>
+        <a href="{{ url_for('admin_questions', difficulty='hard') }}"
+            class="btn {% if current_diff == 'hard' %}btn-primary{% else %}btn-outline{% endif %} btn-sm">🔴 Hard</a>
+    </div>
+
+    <div class="glass-card" style="padding: 0;">
+        {% for q in questions %}
+        <div class="question-item">
+            <div class="question-text">
+                <strong>{{ q.text }}</strong>
+                <p><span class="badge badge-{{ q.difficulty }}">{{ q.difficulty }}</span> · {{ q.category }} · Answer:
+                    {{ q.correct_option }}</p>
+            </div>
+            <div class="question-actions">
+                <a href="{{ url_for('admin_delete_question', qid=q.id) }}" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Delete this question?')">🗑️</a>
+            </div>
+        </div>
+        {% else %}
+        <div style="padding: 2rem; text-align: center; color: var(--text-muted);">No questions found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

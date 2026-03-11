@@ -1,77 +1,97 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="animate-in">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 2.5rem;">Academic Profile</h1>
-            <p style="color: var(--text-muted);">Student ID: <span style="color: var(--primary);">{{
+            <h1 style="font-size: 2rem;">Academic Profile</h1>
+            <p style="color: var(--text-muted);">{{ current_user.username }} · <span style="color: var(--primary);">{{
                     current_user.student_id }}</span></p>
         </div>
-        <a href="{{ url_for('start_exam') }}" class="btn btn-primary" style="padding: 1rem 2rem;">Take New Exam</a>
     </div>
 
     <div class="stats-grid">
         <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.875rem;">Exams Taken</p>
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Exams Taken</p>
             <div class="stat-value">{{ results|length }}</div>
         </div>
         <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.875rem;">Avg. Score</p>
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Avg. Score</p>
             <div class="stat-value">
-                {% if results %}
-                {{ (results|sum(attribute='score') / results|length)|round(1) }}/10
-                {% else %}
-                0
-                {% endif %}
+                {% if results %}{{ (results|sum(attribute='score') / results|length)|round(1) }}{% else %}0{% endif
+                %}/10
             </div>
         </div>
         <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.875rem;">Total Points</p>
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Total Points</p>
             <div class="stat-value">{{ results|sum(attribute='score') }}</div>
         </div>
     </div>
 
-    <div class="glass-card" style="margin-top: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;">✨ AI Question Generator</h3>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Upload a document (PDF) or provide a URL to generate
-            custom examination questions.</p>
+    <!-- Difficulty Selector -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">🎯 Start New Exam</h3>
+        <div class="difficulty-selector">
+            <a href="{{ url_for('start_exam', difficulty='easy') }}" class="difficulty-card easy">
+                <div class="icon">🟢</div>
+                <h3>Easy</h3>
+                <p>Fundamentals & basics</p>
+            </a>
+            <a href="{{ url_for('start_exam', difficulty='medium') }}" class="difficulty-card medium">
+                <div class="icon">🟡</div>
+                <h3>Medium</h3>
+                <p>Applied knowledge</p>
+            </a>
+            <a href="{{ url_for('start_exam', difficulty='hard') }}" class="difficulty-card hard">
+                <div class="icon">🔴</div>
+                <h3>Hard</h3>
+                <p>Advanced concepts</p>
+            </a>
+        </div>
+    </div>
 
+    <!-- AI Generator -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">✨ AI Question Generator</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Upload a PDF or paste a URL to
+            create custom questions.</p>
         <form action="{{ url_for('generate_from_source') }}" method="POST" enctype="multipart/form-data"
-            style="display: grid; gap: 1.5rem;">
+            style="display: grid; gap: 1rem;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label>Upload PDF Document</label>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Upload PDF</label>
                     <input type="file" name="doc_file" accept=".pdf">
                 </div>
-                <div class="form-group">
-                    <label>Or Paste Article/Doc URL</label>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Or Paste URL</label>
                     <input type="url" name="doc_url" placeholder="https://example.com/article">
                 </div>
             </div>
-            <button type="submit" class="btn btn-outline" style="width: fit-content; padding: 1rem 2rem;">
-                🚀 Generate & Start Exam
-            </button>
+            <button type="submit" class="btn btn-outline" style="width: fit-content;">🚀 Generate & Start</button>
         </form>
     </div>
 
-    <div class="glass-card" style="margin-top: 2rem;">
-        <h3 style="margin-bottom: 1.5rem;">Recent Examination Records</h3>
+    <!-- Records -->
+    <div class="glass-card">
+        <h3 style="margin-bottom: 1rem;">📋 Exam Records</h3>
         {% if results %}
-        <div style="overflow-x: auto;">
+        <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Difficulty</th>
                         <th>Score</th>
                         <th>Accuracy</th>
-                        <th>Time Taken</th>
+                        <th>Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in results %}
                     <tr>
                         <td>{{ res.date_completed.strftime('%b %d, %Y') }}</td>
+                        <td><span class="badge badge-{{ res.difficulty or 'easy' }}">{{ res.difficulty or 'easy'
+                                }}</span></td>
                         <td style="font-weight: 600;">{{ res.score }}/{{ res.total_questions }}</td>
                         <td>{{ (res.score / res.total_questions * 100)|int }}%</td>
                         <td>{{ res.time_taken }}s</td>
@@ -81,8 +101,8 @@
             </table>
         </div>
         {% else %}
-        <p style="text-align: center; padding: 2rem; color: var(--text-muted);">No records found. Start your first exam
-            today!</p>
+        <p style="text-align: center; padding: 2rem; color: var(--text-muted);">No records yet. Start your first exam
+            above!</p>
         {% endif %}
     </div>
 </div>

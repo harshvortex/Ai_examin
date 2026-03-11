@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-in">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem;">🛡️ Admin Panel</h1>
+        <p style="color: var(--text-muted);">Welcome, {{ current_user.username }} · <span class="badge badge-role">{{
+                current_user.role or 'admin' }}</span></p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="glass-card stat-item">
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Total Questions</p>
+            <div class="stat-value">{{ q_count }}</div>
+        </div>
+        <div class="glass-card stat-item">
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Registered Users</p>
+            <div class="stat-value">{{ u_count }}</div>
+        </div>
+        <div class="glass-card stat-item">
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Exams Completed</p>
+            <div class="stat-value">{{ r_count }}</div>
+        </div>
+    </div>
+
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">📊 Question Distribution</h3>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div><span class="badge badge-easy">Easy</span> <strong style="margin-left: 0.5rem;">{{ easy }}</strong>
+            </div>
+            <div><span class="badge badge-medium">Medium</span> <strong style="margin-left: 0.5rem;">{{ medium
+                    }}</strong></div>
+            <div><span class="badge badge-hard">Hard</span> <strong style="margin-left: 0.5rem;">{{ hard }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-grid">
+        <a href="{{ url_for('admin_questions') }}" class="glass-card admin-card"
+            style="text-decoration: none; color: var(--text-main);">
+            <div class="icon">📝</div>
+            <h3>Manage Questions</h3>
+            <p>View, add, or delete questions by difficulty.</p>
+        </a>
+        <a href="{{ url_for('admin_add_question') }}" class="glass-card admin-card"
+            style="text-decoration: none; color: var(--text-main);">
+            <div class="icon">➕</div>
+            <h3>Add New Question</h3>
+            <p>Create questions with difficulty and category.</p>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="glass-card admin-card"
+            style="text-decoration: none; color: var(--text-main);">
+            <div class="icon">👥</div>
+            <h3>View Students</h3>
+            <p>See all registered users and their roles.</p>
+        </a>
+        <a href="{{ url_for('admin_results') }}" class="glass-card admin-card"
+            style="text-decoration: none; color: var(--text-main);">
+            <div class="icon">📈</div>
+            <h3>Exam Results</h3>
+            <p>Review all student exam records.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

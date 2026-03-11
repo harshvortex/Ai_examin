@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-in">
+    <h1 style="font-size: 2rem; margin-bottom: 2rem;">📈 All Exam Results</h1>
+    <div class="glass-card">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Score</th>
+                        <th>Difficulty</th>
+                        <th>Accuracy</th>
+                        <th>Time</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in results %}
+                    <tr>
+                        <td>{{ r.student.username if r.student else 'Unknown' }}</td>
+                        <td style="font-weight: 600;">{{ r.score }}/{{ r.total_questions }}</td>
+                        <td><span class="badge badge-{{ r.difficulty or 'easy' }}">{{ r.difficulty or 'easy' }}</span>
+                        </td>
+                        <td>{{ (r.score / r.total_questions * 100)|int }}%</td>
+                        <td>{{ r.time_taken }}s</td>
+                        <td>{{ r.date_completed.strftime('%b %d, %Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

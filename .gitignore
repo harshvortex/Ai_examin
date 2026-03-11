@@ -4,3 +4,4 @@ instance/
 *.db
 .pytest_cache/
 .vscode/
+.vercel

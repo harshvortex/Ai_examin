@@ -5,3 +5,4 @@ flask-bcrypt
 gunicorn
 PyPDF2
 requests
+psycopg2-binary
