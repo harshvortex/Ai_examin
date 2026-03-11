@@ -35,9 +35,15 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{db_path}')
 
 # Handle DATABASE_URL for Postgres if provided
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Production Session Security
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=600 # 10 minutes (matches exam duration)
+)
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -46,7 +52,21 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    if user:
+        return user
+    
+    # Serverless Recovery: If user not in local DB (Instance Shuffle), 
+    # reconstruct a temporary user from session data to prevent logout.
+    if 'user_data' in session:
+        data = session['user_data']
+        return User(
+            id=data['id'],
+            username=data['username'],
+            email=data['email'],
+            student_id=data['student_id']
+        )
+    return None
 
 # Initialize Database and Sample Data
 def init_db():
@@ -99,7 +119,14 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
         if user and bcrypt.check_password_hash(user.password_hash, password):
-            login_user(user, remember=True) # Added remember=True for persistence
+            login_user(user, remember=True)
+            # Store user data in session for cross-instance recovery on Vercel
+            session['user_data'] = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'student_id': user.student_id
+            }
             return redirect(url_for('dashboard'))
         flash('Invalid email or password. Please try again.', 'danger')
     return render_template('login.html')
