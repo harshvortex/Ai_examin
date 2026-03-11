@@ -14,7 +14,8 @@ except ImportError:
     PyPDF2 = None
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
+# Stabilize Secret Key to prevent session loss on restarts
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_123456789')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///examinor.db')
 # Handle DATABASE_URL for Postgres if using Render/Railway (they often use 'postgres://')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
@@ -67,31 +68,39 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email').lower().strip()
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
         if user and bcrypt.check_password_hash(user.password_hash, password):
-            login_user(user)
+            login_user(user, remember=True) # Added remember=True for persistence
             return redirect(url_for('dashboard'))
-        flash('Login Unsuccessful. Please check email and password', 'danger')
+        flash('Invalid email or password. Please try again.', 'danger')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
+        username = request.form.get('username').strip()
+        email = request.form.get('email').lower().strip()
         password = request.form.get('password')
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('This email is already registered. Please login.', 'warning')
+            return redirect(url_for('login'))
+            
         student_id = f"STU-{random.randint(1000, 9999)}"
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=hashed_password, student_id=student_id)
         db.session.add(user)
         try:
             db.session.commit()
-            flash('Your account has been created!', 'success')
+            flash('Your account has been created! You can now log in.', 'success')
             return redirect(url_for('login'))
-        except:
-            flash('Email already exists.', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred during registration. Please try again.', 'danger')
     return render_template('register.html')
 
 @app.route('/logout')
