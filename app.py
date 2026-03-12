@@ -442,16 +442,27 @@ def submit_exam():
     if tab_switches >= 3: penalty = 5 # Deduct heavily for cheating, but capped at score
     final_score = max(0, score - penalty)
 
+    # 🤖 2. Auto-Grading AI Feedback
+    feedback = "Overall good attempt!"
+    worst_cat = "N/A"
+    min_acc = 100
+    for cat, stat in analytics.items():
+        acc = (stat['correct'] / stat['total']) * 100
+        if acc < min_acc:
+            min_acc = acc
+            worst_cat = cat
+
     if client:
         try:
             prompt = f"Student got {final_score}/{len(q_ids)} on a {difficulty} exam. Category performance: {json.dumps(analytics)}. Tab switches: {tab_switches}. Provide 1 sentence of encouraging but critical AI feedback/advice."
             chat_completion = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
                 model="llama-3.3-70b-versatile",
-                max_tokens=50
+                max_tokens=100
             )
             feedback = chat_completion.choices[0].message.content
-        except:
+        except Exception as e:
+            logging.error(f"AI Feedback Error: {e}")
             if min_acc < 50:
                 feedback = f"AI Tutor's Insight: You're struggling with '{worst_cat}'. Consider deep-diving into this module before your next attempt."
             elif penalty > 0:
