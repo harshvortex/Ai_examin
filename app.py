@@ -19,11 +19,22 @@ except ImportError:
 from flask_caching import Cache
 from flask_session import Session
 import logging
-from groq import Groq
-
 # Configure Logging for security auditing
-logging.basicConfig(level=logging.INFO, filename='logs/security.log',
+log_dir = '/tmp' if os.environ.get('VERCEL') else 'logs'
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(level=logging.INFO, 
+                    filename=os.path.join(log_dir, 'security.log'),
                     format='%(asctime)s - %(levelname)s - %(message)s')
+
+try:
+    import requests
+except ImportError:
+    requests = None
+
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
 
 app = Flask(__name__)
 # Redis or File caching for speed
@@ -35,7 +46,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_12345678
 
 # Groq AI Client
 client = None
-if os.environ.get('GROQ_API_KEY'):
+if Groq and os.environ.get('GROQ_API_KEY'):
     try:
         client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
     except Exception as e:
@@ -203,8 +214,8 @@ def send_notification(recipient, message):
             return False
             
     # Fallback/Development: Log to Secure Gateway
-    os.makedirs('logs', exist_ok=True)
-    with open('logs/sms_gateway.log', 'a') as f:
+    os.makedirs(log_dir, exist_ok=True)
+    with open(os.path.join(log_dir, 'sms_gateway.log'), 'a') as f:
         f.write(f"[{datetime.now()}] DISPATCHED TO {recipient}: {message}\n")
     return True
 
