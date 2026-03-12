@@ -40,6 +40,9 @@ app = Flask(__name__)
 # Redis or File caching for speed
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 app.config['SESSION_TYPE'] = 'filesystem'
+if os.environ.get('VERCEL'):
+    app.config['SESSION_FILE_DIR'] = '/tmp/flask_session'
+    os.makedirs('/tmp/flask_session', exist_ok=True)
 Session(app)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_123456789')
@@ -203,11 +206,15 @@ def send_notification(recipient, message):
                 'To': recipient,
                 'Body': message
             }
-            resp = requests.post(url, data=payload, auth=auth, timeout=10)
-            if resp.status_code in (200, 201):
-                return True
+            if requests:
+                resp = requests.post(url, data=payload, auth=auth, timeout=10)
+                if resp.status_code in (200, 201):
+                    return True
+                else:
+                    logging.error(f"Twilio API Error: {resp.text}")
+                    return False
             else:
-                logging.error(f"Twilio API Error: {resp.text}")
+                logging.error("Requests library missing for SMS dispatch.")
                 return False
         except Exception as e:
             logging.error(f"SMS Dispatch Failed: {str(e)}")
