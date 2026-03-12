@@ -582,6 +582,46 @@ def faculty_monitor():
     active_students = User.query.filter(User.role == 'student', User.last_active >= threshold).all()
     return render_template('admin/monitor.html', active_students=active_students)
 
+@app.route('/api/admin/results')
+@login_required
+@role_required(['admin', 'faculty'])
+def api_admin_results():
+    results = ExamResult.query.order_by(ExamResult.date_completed.desc()).all()
+    output = []
+    for r in results:
+        output.append({
+            'id': r.id,
+            'student_name': r.student.username if r.student else 'Unknown',
+            'student_email': r.student.email if r.student else 'N/A',
+            'score': r.score,
+            'total_questions': r.total_questions,
+            'difficulty': r.difficulty,
+            'time_taken': r.time_taken,
+            'date_completed': r.date_completed.isoformat(),
+            'tab_switches': r.tab_switches,
+            'penalty_applied': r.penalty_applied,
+            'accuracy': int((r.score / r.total_questions) * 100) if r.total_questions > 0 else 0
+        })
+    return jsonify(output)
+
+@app.route('/api/student/results')
+@login_required
+def api_student_results():
+    results = ExamResult.query.filter_by(user_id=current_user.id).order_by(ExamResult.date_completed.desc()).all()
+    output = []
+    for r in results:
+        output.append({
+            'id': r.id,
+            'score': r.score,
+            'total_questions': r.total_questions,
+            'difficulty': r.difficulty,
+            'time_taken': r.time_taken,
+            'date_completed': r.date_completed.isoformat(),
+            'accuracy': int((r.score / r.total_questions) * 100) if r.total_questions > 0 else 0,
+            'certificate_url': url_for('download_certificate', result_id=r.id)
+        })
+    return jsonify(output)
+
 
 @app.route('/generate-from-source', methods=['POST'])
 @login_required

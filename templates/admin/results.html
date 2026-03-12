@@ -1,35 +1,142 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="animate-in">
-    <h1 style="font-size: 2rem; margin-bottom: 2rem;">📈 All Exam Results</h1>
-    <div class="glass-card">
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student</th>
-                        <th>Score</th>
-                        <th>Difficulty</th>
-                        <th>Accuracy</th>
-                        <th>Time</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in results %}
-                    <tr>
-                        <td>{{ r.student.username if r.student else 'Unknown' }}</td>
-                        <td style="font-weight: 600;">{{ r.score }}/{{ r.total_questions }}</td>
-                        <td><span class="badge badge-{{ r.difficulty or 'easy' }}">{{ r.difficulty or 'easy' }}</span>
-                        </td>
-                        <td>{{ (r.score / r.total_questions * 100)|int }}%</td>
-                        <td>{{ r.time_taken }}s</td>
-                        <td>{{ r.date_completed.strftime('%b %d, %Y') }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div id="admin-results-root">
+        <!-- React will mount here -->
+        <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
+            <div class="loader"></div>
+            <p style="margin-top: 1rem;">Initializing AI Insights Dashboard...</p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- React Dependencies -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dashboard Logic -->
+<script type="text/babel" src="{{ url_for('static', filename='js/admin_results.js') }}"></script>
+
+<style>
+/* Dashboard specific styles */
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--glass-border);
+    border-bottom-color: var(--primary);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: var(--glass-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--glass-border);
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    color: white;
+    width: 250px;
+}
+
+.search-input:focus {
+    box-shadow: none;
+}
+
+.results-table-wrap {
+    overflow-x: auto;
+    border-radius: 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    padding: 1.25rem 1.5rem;
+    background: rgba(255,255,255,0.02);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+td {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.95rem;
+}
+
+tr:hover td {
+    background: rgba(255,255,255,0.03);
+}
+
+.badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-easy { background: rgba(16, 185, 129, 0.1); color: var(--easy); border: 1px solid rgba(16, 185, 129, 0.2); }
+.badge-medium { background: rgba(245, 158, 11, 0.1); color: var(--medium); border: 1px solid rgba(245, 158, 11, 0.2); }
+.badge-hard { background: rgba(239, 68, 68, 0.1); color: var(--hard); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    text-align: center;
+}
+
+.stat-card .label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+</style>
 {% endblock %}

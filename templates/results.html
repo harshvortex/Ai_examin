@@ -1,106 +1,70 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 4rem auto; text-align: center;" class="animate-in">
-    <div class="glass-card">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
-        <h1 style="margin-bottom: 1rem;">Exam Completed!</h1>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Your performance has been analyzed by AI Examinor.</p>
-
-        <div
-            style="background: rgba(99, 102, 241, 0.05); border-radius: 2rem; padding: 2rem; margin-bottom: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;">
-                <div style="text-align: left;">
-                    <p style="font-size: 0.9rem; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 0.5rem;">Score Summary</p>
-                    <div style="font-size: 4rem; font-weight: 800; margin: 0.5rem 0;">{{ score }}<span style="font-size: 1.5rem; color: var(--text-muted); font-weight: 400;">/{{ total }}</span></div>
-                    
-                    {% if result.penalty_applied > 0 %}
-                    <p style="color: var(--danger); font-size: 0.8rem; font-weight: 600;">⚠️ -{{ result.penalty_applied }} Penalty Points Applied</p>
-                    <p style="color: var(--text-muted); font-size: 0.7rem;">(Base Score: {{ real_score }}/{{ total }})</p>
-                    {% endif %}
-
-                    <!-- Security Flags -->
-                    <div style="margin-top: 1.5rem; padding: 1rem; border-radius: 1rem; background: {% if result.tab_switches >= 3 %}rgba(239, 68, 68, 0.1){% else %}rgba(16, 185, 129, 0.1){% endif %}; border: 1px solid {% if result.tab_switches >= 3 %}var(--danger){% else %}var(--accent){% endif %};">
-                        <p style="font-size: 0.8rem; font-weight: 600; color: {% if result.tab_switches >= 3 %}var(--danger){% else %}var(--accent){% endif %};">
-                            🛡️ Security Status: {% if result.tab_switches == 0 %}Clean{% elif result.tab_switches < 3 %}Minor Infraction{% else %}Compromised{% endif %}
-                        </p>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">{{ result.tab_switches }} tab switches / {{ result.snapshots|length }} snapshots taken.</p>
-                    </div>
-                </div>
-                <div>
-                    <canvas id="skillChart" style="max-width: 100%;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI Tutor Feedback -->
-        <div class="glass-card" style="margin-bottom: 2rem; border-left: 4px solid var(--primary); text-align: left;">
-            <p style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">🤖 AI TUTOR FEEDBACK</p>
-            <p style="font-style: italic; color: var(--text-main);">"{{ result.tutor_feedback }}"</p>
-        </div>
-
-        <!-- Snapshot Gallery (Small) -->
-        {% if result.snapshots %}
-        <div style="margin-bottom: 2rem;">
-            <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 1rem; text-align: left;">📸 PROCTORING SNAPSHOTS</p>
-            <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem;">
-                {% for snap in result.snapshots %}
-                <img src="{{ snap.image_data }}" style="height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="padding: 1rem 2rem;">🏠 Dashboard</a>
-            <a href="{{ url_for('download_certificate', result_id=result.id) }}" class="btn btn-primary" style="padding: 1rem 2rem;" target="_blank">🎓 Claim Certificate</a>
-        </div>
+<div id="result-page-root" class="animate-in">
+    <!-- React will mount here -->
+     <div style="max-width: 600px; margin: 4rem auto; text-align: center;">
+        <div class="loader"></div>
+        <p style="margin-top: 1rem; color: var(--text-muted);">Synthesizing Performance Analysis...</p>
     </div>
 </div>
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const ctx = document.getElementById('skillChart').getContext('2d');
-        const categories = {{ analytics.keys()|list|tojson }};
-        const data = {{ analytics.values()|list|map(attribute='correct')|list|tojson }};
-        const totals = {{ analytics.values()|list|map(attribute='total')|list|tojson }};
-        
-        // Calculate percentages
-        const scores = data.map((v, i) => (v / totals[i]) * 100);
-
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: categories,
-                datasets: [{
-                    label: 'Skill Proficiency (%)',
-                    data: scores,
-                    fill: true,
-                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                    borderColor: 'rgb(99, 102, 241)',
-                    pointBackgroundColor: 'rgb(99, 102, 241)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(99, 102, 241)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        pointLabels: { color: '#94a3b8' },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}
+
+{% block scripts %}
+<!-- React Dependencies -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Result Data -->
+<div id="result-data" style="display: none;">
+{
+    "score": {{ score }},
+    "real_score": {{ real_score }},
+    "total": {{ total }},
+    "difficulty": "{{ result.difficulty }}",
+    "time_taken": {{ result.time_taken }},
+    "tab_switches": {{ result.tab_switches }},
+    "penalty_applied": {{ result.penalty_applied }},
+    "tutor_feedback": {{ result.tutor_feedback|tojson }},
+    "snapshots": [
+        {% for snap in result.snapshots %}
+        "{{ snap.image_data }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "analytics": {{ analytics|tojson }},
+    "certificate_url": "{{ url_for('download_certificate', result_id=result.id) }}",
+    "dashboard_url": "{{ url_for('dashboard') }}"
+}
+</div>
+
+<script type="text/babel" src="{{ url_for('static', filename='js/student_result.js') }}"></script>
+
+<style>
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--glass-border);
+    border-bottom-color: var(--primary);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .performance-container {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+}
+</style>
 {% endblock %}

@@ -4,110 +4,164 @@
     <div
         style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 2rem;">Academic Profile</h1>
-            <p style="color: var(--text-muted);">{{ current_user.username }} · <span style="color: var(--primary);">{{
-                    current_user.student_id }}</span></p>
+            <h1 style="font-size: 2.5rem; fontWeight: 800; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Academic Command Center</h1>
+            <p style="color: var(--text-muted); font-weight: 500;">
+                Welcome back, <span style="color: var(--text-main); font-weight: 700;">{{ current_user.username }}</span> 
+                · ID: <span style="color: var(--primary);">{{ current_user.student_id }}</span>
+            </p>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.8rem;">Exams Taken</p>
-            <div class="stat-value">{{ results|length }}</div>
-        </div>
-        <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.8rem;">Avg. Score</p>
-            <div class="stat-value">
-                {% if results %}{{ (results|sum(attribute='score') / results|length)|round(1) }}{% else %}0{% endif
-                %}/10
+    <!-- Overview Stats -->
+    <div id="student-stats-root" style="margin-bottom: 3rem;">
+        <div class="stats-grid">
+            <div class="glass-card stat-item">
+                <p style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Exams Taken</p>
+                <div class="stat-value" style="color: #fff;">{{ results|length }}</div>
             </div>
-        </div>
-        <div class="glass-card stat-item">
-            <p style="color: var(--text-muted); font-size: 0.8rem;">Total Points</p>
-            <div class="stat-value">{{ results|sum(attribute='score') }}</div>
-        </div>
-    </div>
-
-    <!-- Difficulty Selector -->
-    <div class="glass-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1rem;">🎯 Start New Exam</h3>
-        <div class="difficulty-selector">
-            <a href="{{ url_for('start_exam', difficulty='easy') }}" class="difficulty-card easy">
-                <div class="icon">🟢</div>
-                <h3>Easy</h3>
-                <p>Fundamentals & basics</p>
-            </a>
-            <a href="{{ url_for('start_exam', difficulty='medium') }}" class="difficulty-card medium">
-                <div class="icon">🟡</div>
-                <h3>Medium</h3>
-                <p>Applied knowledge</p>
-            </a>
-            <a href="{{ url_for('start_exam', difficulty='hard') }}" class="difficulty-card hard">
-                <div class="icon">🔴</div>
-                <h3>Hard</h3>
-                <p>Advanced concepts</p>
-            </a>
-        </div>
-    </div>
-
-    <!-- AI Generator -->
-    <div class="glass-card" style="margin-bottom: 2rem;">
-        <h3 style="margin-bottom: 1rem;">✨ AI Question Generator</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Upload a PDF or paste a URL to
-            create custom questions.</p>
-        <form action="{{ url_for('generate_from_source') }}" method="POST" enctype="multipart/form-data"
-            style="display: grid; gap: 1rem;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Upload PDF</label>
-                    <input type="file" name="doc_file" accept=".pdf">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Or Paste URL</label>
-                    <input type="url" name="doc_url" placeholder="https://example.com/article">
+            <div class="glass-card stat-item">
+                <p style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Avg. Competency</p>
+                <div class="stat-value" style="color: var(--primary);">
+                    {% if results %}{{ (results|sum(attribute='score') / (results|length * 10) * 100)|int }}%{% else %}0%{% endif %}
                 </div>
             </div>
-            <button type="submit" class="btn btn-outline" style="width: fit-content;">🚀 Generate & Start</button>
-        </form>
+            <div class="glass-card stat-item">
+                <p style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">Total Score</p>
+                <div class="stat-value" style="color: var(--accent);">{{ results|sum(attribute='score') }}</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Records -->
-    <div class="glass-card">
-        <h3 style="margin-bottom: 1rem;">📋 Exam Records</h3>
-        {% if results %}
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Difficulty</th>
-                        <th>Score</th>
-                        <th>Accuracy</th>
-                        <th>Time</th>
-                        <th>Certificate</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in results %}
-                    <tr>
-                        <td>{{ res.date_completed.strftime('%b %d, %Y') }}</td>
-                        <td><span class="badge badge-{{ res.difficulty or 'easy' }}">{{ res.difficulty or 'easy'
-                                }}</span></td>
-                        <td style="font-weight: 600;">{{ res.score }}/{{ res.total_questions }}</td>
-                        <td>{{ (res.score / res.total_questions * 100)|int }}%</td>
-                        <td>{{ res.time_taken }}s</td>
-                        <td>
-                            <a href="{{ url_for('download_certificate', result_id=res.id) }}" class="btn btn-sm btn-outline" target="_blank">🎓 Certificate</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+        <!-- Difficulty Selector -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                🎯 <span style="background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Initiate Trial</span>
+            </h3>
+            <div class="difficulty-selector">
+                <a href="{{ url_for('start_exam', difficulty='easy') }}" class="difficulty-card easy">
+                    <div class="icon">🟢</div>
+                    <h3>Easy Mode</h3>
+                    <p>Core concepts & base logic</p>
+                </a>
+                <a href="{{ url_for('start_exam', difficulty='medium') }}" class="difficulty-card medium">
+                    <div class="icon">🟡</div>
+                    <h3>Standard</h3>
+                    <p>Applied problem solving</p>
+                </a>
+                <a href="{{ url_for('start_exam', difficulty='hard') }}" class="difficulty-card hard">
+                    <div class="icon">🔴</div>
+                    <h3>Expert</h3>
+                    <p>Deep technical architecture</p>
+                </a>
+            </div>
         </div>
-        {% else %}
-        <p style="text-align: center; padding: 2rem; color: var(--text-muted);">No records yet. Start your first exam
-            above!</p>
-        {% endif %}
+
+        <!-- AI Generator -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 1rem; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                ✨ <span style="background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI Engine</span>
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.5;">Feed the neural network with documentation to generate adaptive testing parameters.</p>
+            <form action="{{ url_for('generate_from_source') }}" method="POST" enctype="multipart/form-data"
+                style="display: grid; gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.75rem;">UPLOAD PDF SOURCE</label>
+                    <input type="file" name="doc_file" accept=".pdf" style="padding: 0.5rem; font-size: 0.85rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.75rem;">OR REFERENCE URL</label>
+                    <input type="url" name="doc_url" placeholder="Paste link..." style="padding: 0.5rem; font-size: 0.85rem;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 0.5rem; padding: 0.6rem;">⚡ SYNC & GENERATE</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dynamic Records -->
+    <div id="dashboard-results-root">
+        <div class="glass-card" style="padding: 4rem; text-align: center;">
+            <div class="loader"></div>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Accessing Achievement Ledger...</p>
+        </div>
     </div>
 </div>
+
+<style>
+.loader {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--glass-border);
+    border-bottom-color: var(--primary);
+    border-radius: 50%;
+    display: inline-block;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.difficulty-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.difficulty-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+}
+
+.difficulty-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    background: rgba(129, 140, 248, 0.05);
+}
+
+.difficulty-card.easy:hover { border-color: var(--easy); }
+.difficulty-card.medium:hover { border-color: var(--medium); }
+.difficulty-card.hard:hover { border-color: var(--hard); }
+
+.difficulty-card .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.difficulty-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.difficulty-card p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 992px) {
+    div[style*="grid-template-columns: 1.5fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- React Dependencies -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dashboard JS -->
+<script type="text/babel" src="{{ url_for('static', filename='js/student_dashboard.js') }}"></script>
 {% endblock %}
