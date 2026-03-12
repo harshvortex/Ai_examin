@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="animate-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2rem;">🔴 Live Hierarchy Monitor</h1>
+            <p style="color: var(--text-muted);">Real-time tracking of active student sessions (Faculty Privileges)</p>
+        </div>
+        <div class="badge badge-role">Faculty Live View</div>
+    </div>
+
+    <div class="glass-card">
+        <h3 style="margin-bottom: 1.5rem;">Currently Active Students (Last 15m)</h3>
+        {% if active_students %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Student Name</th>
+                        <th>Security Logic</th>
+                        <th>Last Action</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in active_students %}
+                    {% set last_res = student.results[-1] if student.results else None %}
+                    <tr>
+                        <td>
+                            <span style="display: inline-block; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; margin-right: 5px; box-shadow: 0 0 10px var(--accent);"></span>
+                            Active
+                        </td>
+                        <td style="font-weight: 600;">{{ student.username }}</td>
+                        <td>
+                            {% if last_res and last_res.tab_switches > 0 %}
+                            <span class="badge badge-hard">🚩 {{ last_res.tab_switches }} Switches</span>
+                            {% else %}
+                            <span class="badge badge-easy">✅ Secure</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ student.last_active.strftime('%H:%M:%S') }}</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-outline" onclick="openChat('{{ student.id }}', '{{ student.username }}')">💬 Chat</button>
+                                <button class="btn btn-sm btn-outline" onclick="viewSnapshots('{{ student.id }}')">📸 Snaps</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 4rem;">
+            <p style="color: var(--text-muted);">No students currently online.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chat Modal (Simple) -->
+    <div id="chat-modal" class="glass-card" style="display: none; position: fixed; bottom: 2rem; right: 2rem; width: 350px; z-index: 1000; border: 1px solid var(--primary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 id="chat-user">Chat with Student</h3>
+            <button onclick="document.getElementById('chat-modal').style.display='none'" style="background: none; border: none; color: white; cursor: pointer;">✕</button>
+        </div>
+        <div id="chat-history" style="height: 200px; overflow-y: auto; margin-bottom: 1rem; font-size: 0.9rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem;">
+            <p style="color: var(--text-muted);">Send a warning or instruction...</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <input type="hidden" id="chat-receiver-id">
+            <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1;">
+            <button class="btn btn-primary btn-sm" onclick="sendMsg()">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openChat(id, name) {
+    document.getElementById('chat-modal').style.display = 'block';
+    document.getElementById('chat-user').textContent = `Chat: ${name}`;
+    document.getElementById('chat-receiver-id').value = id;
+}
+
+function sendMsg() {
+    const id = document.getElementById('chat-receiver-id').value;
+    const text = document.getElementById('chat-input').value;
+    if(!text) return;
+
+    fetch('/send-message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({receiver_id: id, text: text})
+    }).then(r => r.json()).then(data => {
+        if(data.success) {
+            const div = document.createElement('div');
+            div.style.marginBottom = '0.5rem';
+            div.innerHTML = `<span style="color: var(--primary);">You:</span> ${text}`;
+            document.getElementById('chat-history').appendChild(div);
+            document.getElementById('chat-input').value = '';
+        }
+    });
+}
+function viewSnapshots(id) {
+    alert("Snapshot viewer opening... (In a real app, this would show a gallery of Base64 images)");
+}
+</script>
+{% endblock %}

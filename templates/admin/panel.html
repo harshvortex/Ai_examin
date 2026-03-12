@@ -53,11 +53,15 @@
             <h3>View Students</h3>
             <p>See all registered users and their roles.</p>
         </a>
-        <a href="{{ url_for('admin_results') }}" class="glass-card admin-card"
-            style="text-decoration: none; color: var(--text-main);">
+        <a href="{{ url_for('admin_results') }}" class="glass-card admin-card">
             <div class="icon">📈</div>
-            <h3>Exam Results</h3>
-            <p>Review all student exam records.</p>
+            <h3>Results</h3>
+            <p>View all student performance records.</p>
+        </a>
+        <a href="{{ url_for('faculty_monitor') }}" class="glass-card admin-card" style="border-color: var(--accent);">
+            <div class="icon">🔴</div>
+            <h3>Live Monitor</h3>
+            <p>Monitor active student sessions (Real-time).</p>
         </a>
     </div>
 </div>

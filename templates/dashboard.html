@@ -84,6 +84,7 @@
                         <th>Score</th>
                         <th>Accuracy</th>
                         <th>Time</th>
+                        <th>Certificate</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,6 +96,9 @@
                         <td style="font-weight: 600;">{{ res.score }}/{{ res.total_questions }}</td>
                         <td>{{ (res.score / res.total_questions * 100)|int }}%</td>
                         <td>{{ res.time_taken }}s</td>
+                        <td>
+                            <a href="{{ url_for('download_certificate', result_id=res.id) }}" class="btn btn-sm btn-outline" target="_blank">🎓 Certificate</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

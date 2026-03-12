@@ -1,28 +1,37 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div style="max-width: 450px; margin: 4rem auto;" class="animate-in">
     <div class="glass-card">
-        <h2 style="margin-bottom: 2rem; text-align: center;">Create Profile</h2>
+        <div class="login-header-icon">✨</div>
+        <h1 style="text-align: center; margin-bottom: 0.5rem; font-size: 1.75rem;">Join AI Examinor</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Create your student account to get started.</p>
+
         <form method="POST">
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required placeholder="Pick a username">
+                <label>Full Name</label>
+                <input type="text" name="username" placeholder="Enter your full name" required>
             </div>
             <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" name="email" required placeholder="name@domain.com">
+                <input type="email" name="email" placeholder="name@example.com" required>
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required placeholder="Secure password">
+                <label>Phone Number (for OTP)</label>
+                <input type="text" name="phone" placeholder="+1 234 567 890" required>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
+            <div class="form-group">
+                <label>Choose Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                🚀 Create Account
+            </button>
         </form>
-        <p style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
-            Already registered? <a href="{{ url_for('login') }}"
-                style="color: var(--primary); text-decoration: none;">Login here</a>
-        </p>
+
+        <div style="text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+            Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In Instead</a>
+        </div>
     </div>
 </div>
 {% endblock %}

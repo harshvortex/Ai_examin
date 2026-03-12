@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate for {{ user.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Great+Vibes&family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background: #f8fafc; color: #1e293b;">
+    <div class="certificate-preview animate-in">
+        <div class="cert-border-inner">
+            <h2 class="subtitle">Certificate of Achievement</h2>
+            <h1>AI EXAMINOR</h1>
+            <p style="margin-top: 1rem; font-size: 1.1rem;">This is to certify that</p>
+            <div class="cert-name">{{ user.username }}</div>
+            <p class="cert-info">
+                Has successfully completed the <strong>{{ result.difficulty|capitalize }}</strong> level examination
+                on <strong>{{ result.date_completed.strftime('%B %d, %Y') }}</strong>
+                with an exceptional score of <strong>{{ result.score }}/{{ result.total_questions }}</strong>.
+                Achievement recognized for excellence and proficiency in the subject matter.
+            </p>
+            
+            <div class="cert-footer">
+                <div class="signature-box">
+                    <p style="font-family: 'Great Vibes', cursive; font-size: 1.5rem; color: #4f46e5; margin-bottom: 0.1rem;">AI Examinor Bot</p>
+                    <p>Program Director</p>
+                </div>
+                <div class="signature-box">
+                    <p style="font-weight: 700; margin-bottom: 0.1rem;">#{{ result.id }}-{{ result.date_completed.strftime('%Y%m%d') }}</p>
+                    <p>Credential ID</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;" class="no-print">
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Print / Download PDF</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline">🏠 Back to Dashboard</a>
+    </div>
+
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { background: white; }
+            .certificate-preview { box-shadow: none; border: 15px solid #1e293b; margin: 0; }
+        }
+    </style>
+</body>
+</html>

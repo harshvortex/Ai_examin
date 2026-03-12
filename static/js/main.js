@@ -28,12 +28,36 @@ function startTimer(duration, display, onComplete) {
     }, 1000);
 }
 
-// Clear timer on submission
+// --- Anti-Cheating: Tab Switching Guard ---
+let tabSwitches = 0;
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && window.location.pathname === '/exam') {
+        tabSwitches++;
+        localStorage.setItem('tab_switches', tabSwitches);
+        
+        // Notify student on return
+        if (tabSwitches >= 3) {
+            alert("⚠️ WARNING: Multiple tab switches detected. Exam may be auto-submitted.");
+        } else {
+            alert(`⚠️ Tab Switch Detected (${tabSwitches}/3). This incident has been logged.`);
+        }
+        
+        // Sync with backend (optional: could be a stealth fetch)
+        fetch('/log-incident', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'tab_switch', count: tabSwitches})
+        });
+    }
+});
+
+// Clear tab switches on form submission
 document.addEventListener('submit', (e) => {
     if (e.target.id === 'exam-form') {
         const isLast = e.target.querySelector('button').textContent.includes('Complete');
         if (isLast) {
             localStorage.removeItem('exam_time_left');
+            localStorage.removeItem('tab_switches');
         }
     }
 });
