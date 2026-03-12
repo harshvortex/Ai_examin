@@ -10,3 +10,4 @@ PyPDF2
 requests
 psycopg2-binary
 twilio
+groq

@@ -19,6 +19,7 @@ except ImportError:
 from flask_caching import Cache
 from flask_session import Session
 import logging
+from groq import Groq
 
 # Configure Logging for security auditing
 logging.basicConfig(level=logging.INFO, filename='logs/security.log',
@@ -31,6 +32,14 @@ app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_123456789')
+
+# Groq AI Client
+client = None
+if os.environ.get('GROQ_API_KEY'):
+    try:
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+    except Exception as e:
+        logging.error(f"Groq Init Failed: {e}")
 
 db_path = os.path.join(app.instance_path, 'examinor.db')
 if os.environ.get('VERCEL'):
@@ -415,20 +424,25 @@ def submit_exam():
     if tab_switches >= 3: penalty = 5 # Deduct heavily for cheating, but capped at score
     final_score = max(0, score - penalty)
 
-    # 🤖 2. Auto-Grading AI Feedback
-    feedback = "Overall good attempt!"
-    worst_cat = "N/A"
-    min_acc = 100
-    for cat, stat in analytics.items():
-        acc = (stat['correct'] / stat['total']) * 100
-        if acc < min_acc:
-            min_acc = acc
-            worst_cat = cat
-    
-    if min_acc < 50:
-        feedback = f"AI Tutor's Insight: You're struggling with '{worst_cat}'. Consider deep-diving into this module before your next attempt."
-    elif penalty > 0:
-        feedback = "AI Warning: Your performance was strong, but integrity issues (tab switching) resulted in point deductions. Professional ethics matter!"
+    if client:
+        try:
+            prompt = f"Student got {final_score}/{len(q_ids)} on a {difficulty} exam. Category performance: {json.dumps(analytics)}. Tab switches: {tab_switches}. Provide 1 sentence of encouraging but critical AI feedback/advice."
+            chat_completion = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama-3.3-70b-versatile",
+                max_tokens=50
+            )
+            feedback = chat_completion.choices[0].message.content
+        except:
+            if min_acc < 50:
+                feedback = f"AI Tutor's Insight: You're struggling with '{worst_cat}'. Consider deep-diving into this module before your next attempt."
+            elif penalty > 0:
+                feedback = "AI Warning: Your performance was strong, but integrity issues (tab switching) resulted in point deductions. Professional ethics matter!"
+    else:
+        if min_acc < 50:
+            feedback = f"AI Tutor's Insight: You're struggling with '{worst_cat}'. Consider deep-diving into this module before your next attempt."
+        elif penalty > 0:
+            feedback = "AI Warning: Your performance was strong, but integrity issues (tab switching) resulted in point deductions. Professional ethics matter!"
 
     result = ExamResult(user_id=current_user.id, score=final_score, total_questions=len(q_ids), 
                         time_taken=time_taken, difficulty=difficulty, tab_switches=tab_switches,
@@ -563,7 +577,53 @@ def generate_from_source():
         except:
              return jsonify({'error': "Fetch failed"}), 400
     
-    # Real-life Simulation: Keyconcept extraction
+    # Real AI question generation with Groq
+    if client and text.strip():
+        try:
+            prompt = f"""Generate 5 high-quality {session.get('exam_difficulty', 'hard')} MCQ questions based on this text:
+            {text[:4000]}
+            
+            Return ONLY a JSON list of objects with these keys: 
+            text, option_a, option_b, option_c, option_d, correct_option (A, B, C, or D), category, difficulty (always '{session.get('exam_difficulty', 'hard')}')"""
+            
+            chat_completion = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama-3.3-70b-versatile",
+                response_format={"type": "json_object"}
+            )
+            
+            raw_response = chat_completion.choices[0].message.content
+            # Handle potential wrapper in response
+            data = json.loads(raw_response)
+            questions_data = data.get('questions', []) if 'questions' in data else data
+            if isinstance(questions_data, dict): questions_data = [questions_data]
+            
+            new_questions = []
+            for item in questions_data[:5]:
+                new_questions.append(Question(
+                    text=item.get('text'),
+                    option_a=item.get('option_a'),
+                    option_b=item.get('option_b'),
+                    option_c=item.get('option_c'),
+                    option_d=item.get('option_d'),
+                    correct_option=item.get('correct_option'),
+                    category="AI Generated",
+                    difficulty=item.get('difficulty', 'hard')
+                ))
+            
+            if new_questions:
+                db.session.bulk_save_objects(new_questions)
+                db.session.commit()
+                session['exam_questions'] = [q.id for q in new_questions]
+                session['exam_difficulty'] = 'hard'
+                session['current_q_index'] = 0
+                session['answers'] = {}
+                session['exam_start_time'] = datetime.now(timezone.utc).timestamp()
+                return redirect(url_for('exam'))
+        except Exception as e:
+            logging.error(f"Groq Generation Failed: {e}")
+
+    # Fallback to Simulated logic if no AI or failure
     keywords = ["Implementation", "Architecture", "Optimization", "Security", "Reliability", "Scalability", "Latency", "Throughput"]
     found = [k for k in keywords if k.lower() in text.lower()]
     if not found: found = ["Core System", "Data Flow"]
@@ -577,7 +637,7 @@ def generate_from_source():
             option_c="Not mentioned in detail",
             option_d="Central to the entire architecture",
             correct_option=random.choice(["A", "D"]),
-            category="AI Generated",
+            category="AI (Simulated)",
             difficulty="hard"
         ))
     
